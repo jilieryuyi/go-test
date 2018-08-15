@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,6 +18,9 @@ import (
 	"github.com/thrasher-/gocryptotrader/currency/forexprovider"
 	"github.com/thrasher-/gocryptotrader/exchanges"
 	"github.com/thrasher-/gocryptotrader/portfolio"
+	"path/filepath"
+	"time"
+	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
 )
 
 // Bot contains configuration, portfolio, exchange & ticker data and is the
@@ -32,26 +35,35 @@ type Bot struct {
 	configFile string
 }
 
-const banner = `
-   ______        ______                     __        ______                  __
-  / ____/____   / ____/_____ __  __ ____   / /_ ____ /_  __/_____ ______ ____/ /___   _____
- / / __ / __ \ / /    / ___// / / // __ \ / __// __ \ / /  / ___// __  // __  // _ \ / ___/
-/ /_/ // /_/ // /___ / /   / /_/ // /_/ // /_ / /_/ // /  / /   / /_/ // /_/ //  __// /
-\____/ \____/ \____//_/    \__, // .___/ \__/ \____//_/  /_/    \__,_/ \__,_/ \___//_/
-                          /____//_/
-`
-
 var bot Bot
+
+func getWorkingPath() string {
+	wd, err := os.Getwd()
+	if err == nil {
+		workingDir := filepath.ToSlash(wd) + "/"
+		return workingDir
+	}
+	return "/"
+}
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: "2006-01-02 15:04:05",
+		ForceColors:      true,
+		QuoteEmptyFields: true,
+		FullTimestamp:    true,
+	})
+	log.SetLevel(log.DebugLevel)
+}
 
 func main() {
 	bot.shutdown = make(chan bool)
 	HandleInterrupt()
 
-	defaultPath, err := config.GetFilePath("")
+	defaultPath, err := config.GetFilePath(getWorkingPath()+"config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
-	defaultPath = "/Users/yuyi/go/src/github.com/thrasher-/gocryptotrader/config.json"
 
 	//Handle flags
 	flag.StringVar(&bot.configFile, "config", defaultPath, "config file to load")
@@ -69,25 +81,25 @@ func main() {
 	}
 
 	bot.config = &config.Cfg
-	fmt.Println(banner)
 	fmt.Println(BuildVersion(false))
-	log.Printf("Loading config file %s..\n", bot.configFile)
+	log.Printf("load config file %s", bot.configFile)
 
 	err = bot.config.LoadConfig(bot.configFile)
 	if err != nil {
-		log.Fatalf("Failed to load config. Err: %s", err)
+		log.Fatalf("bot.config.LoadConfig fail, error=[%s]", err)
+		return 
 	}
 
 	AdjustGoMaxProcs()
-	log.Printf("Bot '%s' started.\n", bot.config.Name)
-	log.Printf("Bot dry run mode: %v.\n", common.IsEnabled(bot.dryRun))
+	log.Printf("Bot '%s' started", bot.config.Name)
+	log.Printf("Bot dry run mode: %v", common.IsEnabled(bot.dryRun))
 
-	log.Printf("Available Exchanges: %d. Enabled Exchanges: %d.\n",
+	log.Printf("Available Exchanges: %d. Enabled Exchanges: %d.",
 		len(bot.config.Exchanges),
 		bot.config.CountEnabledExchanges())
 
 	common.HTTPClient = common.NewHTTPClientWithTimeout(bot.config.GlobalHTTPTimeout)
-	log.Printf("Global HTTP request timeout: %v.\n", common.HTTPClient.Timeout)
+	log.Printf("Global HTTP request timeout: %v.", common.HTTPClient.Timeout)
 
 	SetupExchanges()
 	if len(bot.exchanges) == 0 {
@@ -101,7 +113,7 @@ func main() {
 	log.Printf("Fiat display currency: %s.", bot.config.Currency.FiatDisplayCurrency)
 	currency.BaseCurrency = bot.config.Currency.FiatDisplayCurrency
 	currency.FXProviders = forexprovider.StartFXService(bot.config.GetCurrencyConfig().ForexProviders)
-	log.Printf("Primary forex conversion provider: %s.\n", bot.config.GetPrimaryForexProvider())
+	log.Printf("Primary forex conversion provider: %s.", bot.config.GetPrimaryForexProvider())
 	err = bot.config.RetrieveConfigCurrencyPairs(true)
 	if err != nil {
 		log.Fatalf("Failed to retrieve config currency pairs. Error: %s", err)
@@ -117,14 +129,46 @@ func main() {
 	bot.portfolio.SeedPortfolio(bot.config.Portfolio)
 	SeedExchangeAccountInfo(GetAllEnabledExchangeAccountInfo().Data)
 
-	go portfolio.StartPortfolioWatcher()
-	go TickerUpdaterRoutine()
-	go OrderbookUpdaterRoutine()
+	//go portfolio.StartPortfolioWatcher()
+	//go TickerUpdaterRoutine()
+	
+	// Create a session which maintains a pool of socket connections
+	// to our MongoDB.
+	//session, err := mgo.Dial("127.0.0.1:27017")
+
+	mongo := NewMongoDb("127.0.0.1:27017")
+	defer mongo.Close()
+
+	//if err != nil {
+	//	fmt.Printf("Can't connect to mongo, go error %v", err)
+	//	os.Exit(1)
+	//}
+
+	//defer session.Close()
+
+	// SetSafe changes the session safety mode.
+	// If the safe parameter is nil, the session is put in unsafe mode, and writes become fire-and-forget,
+	// without error checking. The unsafe mode is faster since operations won't hold on waiting for a confirmation.
+	// http://godoc.org/labix.org/v2/mgo#Session.SetMode.
+	//session.SetSafe(&mgo.Safe{})
+
+	// get collection
+	//collection := session.DB("OrderBooks").C("orderbooks")
+	//log.Printf("%+v", collection)
+
+	// 创建一个集合
+	col := mongo.NewCollection("OrderBooks", "orderbooks")
+
+	go OrderbookUpdaterRoutine(func(exchangeName, ticker string, lastUpdated time.Time,
+		asks, bids []orderbook.Item,) {
+		// 异步写入
+		mongo.AsyncInsert(col, exchangeName, ticker, lastUpdated, asks, bids)
+	})
 
 	if bot.config.Webserver.Enabled {
 		listenAddr := bot.config.Webserver.ListenAddress
 		log.Printf(
-			"HTTP Webserver support enabled. Listen URL: http://%s:%d/\n",
+			"HTTP Webserver support enabled. Listen URL: http://%s:%d/",
 			common.ExtractHost(listenAddr), common.ExtractPort(listenAddr),
 		)
 

@@ -9,10 +9,11 @@ import (
 	"github.com/thrasher-/gocryptotrader/currency"
 	"github.com/thrasher-/gocryptotrader/currency/pair"
 	"github.com/thrasher-/gocryptotrader/currency/symbol"
-	exchange "github.com/thrasher-/gocryptotrader/exchanges"
+	"github.com/thrasher-/gocryptotrader/exchanges"
 	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-/gocryptotrader/exchanges/stats"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
+	"github.com/sirupsen/logrus"
 )
 
 func printCurrencyFormat(price float64) string {
@@ -156,8 +157,14 @@ func printOrderbookSummary(result orderbook.Base, p pair.CurrencyPair, assetType
 				asksValue,
 			)
 		}
+		//col.Insert(&map[string]interface{}{
+		//	"ExchangeName": exchangeName,
+		//	"Ticker":	exchange.FormatCurrency(p).String(),
+		//	"Timestamp":	result.LastUpdated,
+		//	"Asks":		result.Asks,
+		//	"Bids":		result.Bids,
+		//})
 	}
-
 }
 
 func relayWebsocketEvent(result interface{}, event, assetType, exchangeName string) {
@@ -231,9 +238,11 @@ func TickerUpdaterRoutine() {
 	}
 }
 
+type OnOrderbook func(exchangeName, ticker string, lastUpdated time.Time,
+	asks, bids []orderbook.Item,)
 // OrderbookUpdaterRoutine fetches and updates the orderbooks for all enabled
 // currency pairs and exchanges
-func OrderbookUpdaterRoutine() {
+func OrderbookUpdaterRoutine(callback OnOrderbook) {
 	log.Println("Starting orderbook updater routine.")
 	var wg sync.WaitGroup
 	for {
@@ -256,7 +265,18 @@ func OrderbookUpdaterRoutine() {
 
 				processOrderbook := func(exch exchange.IBotExchange, c pair.CurrencyPair, assetType string) {
 					result, err := exch.UpdateOrderbook(c, assetType)
-					printOrderbookSummary(result, c, assetType, exchangeName, err)
+					if err != nil {
+						logrus.Errorf("UpdateOrderbook fail, error=[%v]", err)
+					} else {
+						printOrderbookSummary(result, c, assetType, exchangeName, err)
+					}
+					//"ExchangeName": exchangeName,
+					//	"Ticker":	exchange.FormatCurrency(p).String(),
+					//	"Timestamp":	result.LastUpdated,
+					//	"Asks":		result.Asks,
+					//	"Bids":		result.Bids,
+
+					callback(exchangeName, exchange.FormatCurrency(c).String(), result.LastUpdated, result.Asks, result.Bids)
 					if err == nil {
 						bot.comms.StageOrderbookData(exchangeName, assetType, result)
 						if bot.config.Webserver.Enabled {
@@ -274,6 +294,6 @@ func OrderbookUpdaterRoutine() {
 		}
 		wg.Wait()
 		log.Println("All enabled currency orderbooks fetched.")
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 1)
 	}
 }
