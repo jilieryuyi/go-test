@@ -13,7 +13,7 @@ import (
 	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-/gocryptotrader/exchanges/stats"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
-	"github.com/sirupsen/logrus"
+	"github.com/cihub/seelog"
 )
 
 func printCurrencyFormat(price float64) string {
@@ -266,7 +266,7 @@ func OrderbookUpdaterRoutine(callback OnOrderbook) {
 				processOrderbook := func(exch exchange.IBotExchange, c pair.CurrencyPair, assetType string) {
 					result, err := exch.UpdateOrderbook(c, assetType)
 					if err != nil {
-						logrus.Errorf("UpdateOrderbook fail, result=[%+v], c=[%+v], assetType=[%+v], error=[%v]", result, c, assetType, err)
+						seelog.Errorf("UpdateOrderbook fail, result=[%+v], c=[%+v], assetType=[%+v], error=[%v]", result, c, assetType, err)
 						return
 					} else {
 						printOrderbookSummary(result, c, assetType, exchangeName, err)

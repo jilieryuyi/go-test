@@ -1,0 +1,13 @@
+<seelog minlevel="info">
+  <outputs formatid="main">
+    <filter levels="trace, debug, info, warn, error, critical">
+      <console />
+      <buffered size="10000" flushperiod="1000" >
+        <rollingfile type="date" datepattern="2006.01.02" filename="log/log" namemode="prefix" maxrolls="72"/>
+      </buffered>
+    </filter>
+  </outputs>
+  <formats>
+    <format id="main" format="[%LEVEL] [%Date %Time] [%File:%Line] [%Func] - %Msg%n"/>
+  </formats>
+</seelog>

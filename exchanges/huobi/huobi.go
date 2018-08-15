@@ -17,10 +17,10 @@ import (
 
 	"github.com/thrasher-/gocryptotrader/common"
 	"github.com/thrasher-/gocryptotrader/config"
-	exchange "github.com/thrasher-/gocryptotrader/exchanges"
+	"github.com/thrasher-/gocryptotrader/exchanges"
 	"github.com/thrasher-/gocryptotrader/exchanges/request"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
-	"github.com/sirupsen/logrus"
+	"github.com/cihub/seelog"
 )
 
 const (
@@ -183,7 +183,9 @@ func (h *HUOBI) GetDepth(obd OrderBookDataRequestParams) (Orderbook, error) {
 
 	err := h.SendHTTPRequest(common.EncodeURLValues(url, vals), &result)
 
-	logrus.Errorf("SendHTTPRequest %+v, %+v", result, err)
+	if err != nil {
+		seelog.Errorf("SendHTTPRequest %+v, %+v", result, err)
+	}
 
 	if result.ErrorMessage != "" {
 		return result.Depth, errors.New(result.ErrorMessage)

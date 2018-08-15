@@ -2,8 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	log "github.com/sirupsen/logrus"
+	log "github.com/cihub/seelog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -47,13 +46,22 @@ func getWorkingPath() string {
 }
 
 func init() {
-	log.SetFormatter(&log.TextFormatter{
-		TimestampFormat: "2006-01-02 15:04:05",
-		ForceColors:      true,
-		QuoteEmptyFields: true,
-		FullTimestamp:    true,
-	})
-	log.SetLevel(log.DebugLevel)
+	//log.SetFormatter(&log.TextFormatter{
+	//	TimestampFormat: "2006-01-02 15:04:05",
+	//	ForceColors:      true,
+	//	QuoteEmptyFields: true,
+	//	FullTimestamp:    true,
+	//})
+	//log.SetLevel(log.DebugLevel)
+	// 初始化日志组件
+	{
+		logger, err := log.LoggerFromConfigAsFile(getWorkingPath()+"logger.xml")
+		if err != nil {
+			log.Errorf("init logger from %s error: %v", getWorkingPath()+"logger.xml", err)
+		} else {
+			log.ReplaceLogger(logger)
+		}
+	}
 }
 
 func main() {
@@ -62,62 +70,58 @@ func main() {
 
 	defaultPath, err := config.GetFilePath(getWorkingPath()+"config.json")
 	if err != nil {
-		log.Fatal(err)
+		log.Errorf("main config.GetFilePath fail, error=[%v]", err)
+		return 
 	}
 
 	//Handle flags
 	flag.StringVar(&bot.configFile, "config", defaultPath, "config file to load")
-	version := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
 	flag.Parse()
 
-	if *version {
-		fmt.Printf(BuildVersion(true))
-		os.Exit(0)
-	}
 
 	bot.config = &config.Cfg
-	fmt.Println(BuildVersion(false))
-	log.Printf("load config file %s", bot.configFile)
+	log.Infof("load config file %s", bot.configFile)
 
 	err = bot.config.LoadConfig(bot.configFile)
 	if err != nil {
-		log.Fatalf("bot.config.LoadConfig fail, error=[%s]", err)
+		log.Errorf("bot.config.LoadConfig fail, error=[%s]", err)
 		return 
 	}
 
 	AdjustGoMaxProcs()
-	log.Printf("Bot '%s' started", bot.config.Name)
-	//log.Printf("Bot dry run mode: %v", common.IsEnabled(bot.dryRun))
+	log.Infof("Bot '%s' started", bot.config.Name)
+	//log.Infof("Bot dry run mode: %v", common.IsEnabled(bot.dryRun))
 
-	log.Printf("Available Exchanges: %d. Enabled Exchanges: %d.",
+	log.Infof("Available Exchanges: %d. Enabled Exchanges: %d.",
 		len(bot.config.Exchanges),
 		bot.config.CountEnabledExchanges())
 
 	common.HTTPClient = common.NewHTTPClientWithTimeout(bot.config.GlobalHTTPTimeout)
-	log.Printf("Global HTTP request timeout: %v.", common.HTTPClient.Timeout)
+	log.Infof("Global HTTP request timeout: %v.", common.HTTPClient.Timeout)
 
 	SetupExchanges()
 	if len(bot.exchanges) == 0 {
-		log.Fatalf("No exchanges were able to be loaded. Exiting")
+		log.Errorf("No exchanges were able to be loaded. Exiting")
+		return
 	}
 
-	log.Println("Starting communication mediums..")
+	log.Infof("Starting communication mediums..")
 	bot.comms = communications.NewComm(bot.config.GetCommunicationsConfig())
 	bot.comms.GetEnabledCommunicationMediums()
 
-	log.Printf("Fiat display currency: %s.", bot.config.Currency.FiatDisplayCurrency)
+	log.Infof("Fiat display currency: %s.", bot.config.Currency.FiatDisplayCurrency)
 	currency.BaseCurrency = bot.config.Currency.FiatDisplayCurrency
 	currency.FXProviders = forexprovider.StartFXService(bot.config.GetCurrencyConfig().ForexProviders)
-	log.Printf("Primary forex conversion provider: %s.", bot.config.GetPrimaryForexProvider())
+	log.Infof("Primary forex conversion provider: %s.", bot.config.GetPrimaryForexProvider())
 	err = bot.config.RetrieveConfigCurrencyPairs(true)
 	if err != nil {
-		log.Fatalf("Failed to retrieve config currency pairs. Error: %s", err)
+		log.Errorf("Failed to retrieve config currency pairs. Error: %s", err)
+		return 
 	}
-	log.Println("Successfully retrieved config currencies.")
-	log.Println("Fetching currency data from forex provider..")
 	err = currency.SeedCurrencyData(common.JoinStrings(currency.FiatCurrencies, ","))
 	if err != nil {
-		log.Fatalf("Unable to fetch forex data. Error: %s", err)
+		log.Errorf("Unable to fetch forex data. Error: %s", err)
+		return 
 	}
 
 	bot.portfolio = &portfolio.Portfolio
@@ -140,7 +144,7 @@ func main() {
 
 	if bot.config.Webserver.Enabled {
 		listenAddr := bot.config.Webserver.ListenAddress
-		log.Printf(
+		log.Infof(
 			"HTTP Webserver support enabled. Listen URL: http://%s:%d/",
 			common.ExtractHost(listenAddr), common.ExtractPort(listenAddr),
 		)
@@ -149,15 +153,16 @@ func main() {
 		go func() {
 			err = http.ListenAndServe(listenAddr, router)
 			if err != nil {
-				log.Fatal(err)
+				log.Errorf("%v", err)
+				return
 			}
 		}()
 
-		log.Println("HTTP Webserver started successfully.")
-		log.Println("Starting websocket handler.")
+		log.Infof("HTTP Webserver started successfully.")
+		log.Infof("Starting websocket handler.")
 		StartWebsocketHandler()
 	} else {
-		log.Println("HTTP RESTful Webserver support disabled.")
+		log.Infof("HTTP RESTful Webserver support disabled.")
 	}
 
 	<-bot.shutdown
@@ -166,24 +171,25 @@ func main() {
 
 // AdjustGoMaxProcs adjusts the maximum processes that the CPU can handle.
 func AdjustGoMaxProcs() {
-	log.Println("Adjusting bot runtime performance..")
+	log.Infof("Adjusting bot runtime performance..")
 	maxProcsEnv := os.Getenv("GOMAXPROCS")
 	maxProcs := runtime.NumCPU()
-	log.Println("Number of CPU's detected:", maxProcs)
+	log.Infof("Number of CPU's detected:", maxProcs)
 
 	if maxProcsEnv != "" {
-		log.Println("GOMAXPROCS env =", maxProcsEnv)
+		log.Infof("GOMAXPROCS env =", maxProcsEnv)
 		env, err := strconv.Atoi(maxProcsEnv)
 		if err != nil {
-			log.Println("Unable to convert GOMAXPROCS to int, using", maxProcs)
+			log.Infof("Unable to convert GOMAXPROCS to int, using", maxProcs)
 		} else {
 			maxProcs = env
 		}
 	}
 	if i := runtime.GOMAXPROCS(maxProcs); i != maxProcs {
-		log.Fatal("Go Max Procs were not set correctly.")
+		log.Errorf("Go Max Procs were not set correctly.")
+		return
 	}
-	log.Println("Set GOMAXPROCS to:", maxProcs)
+	log.Infof("Set GOMAXPROCS to:", maxProcs)
 }
 
 // HandleInterrupt monitors and captures the SIGTERM in a new goroutine then
@@ -193,29 +199,19 @@ func HandleInterrupt() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		sig := <-c
-		log.Printf("Captured %v, shutdown requested.", sig)
+		log.Infof("Captured %v, shutdown requested.", sig)
 		bot.shutdown <- true
 	}()
 }
 
 // Shutdown correctly shuts down bot saving configuration files
 func Shutdown() {
-	log.Println("Bot shutting down..")
+	log.Infof("Bot shutting down..")
 
 	if len(portfolio.Portfolio.Addresses) != 0 {
 		bot.config.Portfolio = portfolio.Portfolio
 	}
 
-	//if !bot.dryRun {
-	//	err := bot.config.SaveConfig(bot.configFile)
-	//
-	//	if err != nil {
-	//		log.Println("Unable to save config.")
-	//	} else {
-	//		log.Println("Config file saved successfully.")
-	//	}
-	//}
-
-	log.Println("Exiting.")
+	log.Infof("Exiting.")
 	os.Exit(0)
 }

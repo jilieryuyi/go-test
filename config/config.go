@@ -5,7 +5,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
+	log "github.com/cihub/seelog"
 	"os"
 	"strconv"
 	"sync"
@@ -634,11 +634,11 @@ func (c *Config) CheckExchangeConfigValues() error {
 			if exch.AuthenticatedAPISupport { // non-fatal error
 				if exch.APIKey == "" || exch.APISecret == "" || exch.APIKey == "Key" || exch.APISecret == "Secret" {
 					c.Exchanges[i].AuthenticatedAPISupport = false
-					log.Printf(WarningExchangeAuthAPIDefaultOrEmptyValues, exch.Name)
+					log.Infof(WarningExchangeAuthAPIDefaultOrEmptyValues, exch.Name)
 				} else if exch.Name == "ITBIT" || exch.Name == "Bitstamp" || exch.Name == "COINUT" || exch.Name == "CoinbasePro" {
 					if exch.ClientID == "" || exch.ClientID == "ClientID" {
 						c.Exchanges[i].AuthenticatedAPISupport = false
-						log.Printf(WarningExchangeAuthAPIDefaultOrEmptyValues, exch.Name)
+						log.Infof(WarningExchangeAuthAPIDefaultOrEmptyValues, exch.Name)
 					}
 				}
 			}
@@ -646,12 +646,12 @@ func (c *Config) CheckExchangeConfigValues() error {
 				lastUpdated := common.UnixTimestampToTime(exch.PairsLastUpdated)
 				lastUpdated = lastUpdated.AddDate(0, 0, configPairsLastUpdatedWarningThreshold)
 				if lastUpdated.Unix() <= time.Now().Unix() {
-					log.Printf(WarningPairsLastUpdatedThresholdExceeded, exch.Name, configPairsLastUpdatedWarningThreshold)
+					log.Infof(WarningPairsLastUpdatedThresholdExceeded, exch.Name, configPairsLastUpdatedWarningThreshold)
 				}
 			}
 
 			if exch.HTTPTimeout <= 0 {
-				log.Printf("Exchange %s HTTP Timeout value not set, defaulting to %v.", exch.Name, configDefaultHTTPTimeout)
+				log.Infof("Exchange %s HTTP Timeout value not set, defaulting to %v.", exch.Name, configDefaultHTTPTimeout)
 				c.Exchanges[i].HTTPTimeout = configDefaultHTTPTimeout
 			}
 
@@ -752,13 +752,13 @@ func (c *Config) CheckCurrencyConfigValues() error {
 	for i := range c.Currency.ForexProviders {
 		if c.Currency.ForexProviders[i].Enabled == true {
 			if c.Currency.ForexProviders[i].APIKey == "Key" {
-				log.Printf("WARNING -- %s forex provider API key not set. Please set this in your config.json file", c.Currency.ForexProviders[i].Name)
+				log.Infof("WARNING -- %s forex provider API key not set. Please set this in your config.json file", c.Currency.ForexProviders[i].Name)
 				c.Currency.ForexProviders[i].Enabled = false
 				c.Currency.ForexProviders[i].PrimaryProvider = false
 				continue
 			}
 			if c.Currency.ForexProviders[i].APIKeyLvl == -1 {
-				log.Printf("WARNING -- %s APIKey Level not set, functions limited. Please set this in your config.json file",
+				log.Infof("WARNING -- %s APIKey Level not set, functions limited. Please set this in your config.json file",
 					c.Currency.ForexProviders[i].Name)
 			}
 			count++
@@ -771,7 +771,7 @@ func (c *Config) CheckCurrencyConfigValues() error {
 				c.Currency.ForexProviders[x].Enabled = true
 				c.Currency.ForexProviders[x].APIKey = ""
 				c.Currency.ForexProviders[x].PrimaryProvider = true
-				log.Printf("WARNING -- No forex providers set, defaulting to free provider CurrencyConverterAPI.")
+				log.Infof("WARNING -- No forex providers set, defaulting to free provider CurrencyConverterAPI.")
 			}
 		}
 	}
@@ -871,7 +871,7 @@ func GetFilePath(file string) (string, error) {
 
 	exePath, err := common.GetExecutablePath()
 	if err != nil {
-		log.Fatalf("Unable to get executable path: %s", err)
+		log.Errorf("Unable to get executable path: %s", err)
 		return "", err
 	}
 
@@ -886,10 +886,10 @@ func GetFilePath(file string) (string, error) {
 		}
 		err = os.Rename(encPath, cfgPath)
 		if err != nil {
-			log.Fatalf("Unable to rename config file: %s", err)
+			log.Errorf("Unable to rename config file: %s", err)
 			return "", err
 		}
-		log.Printf("Renaming non-encrypted config file from %s to %s",
+		log.Infof("Renaming non-encrypted config file from %s to %s",
 			encPath, cfgPath)
 		return cfgPath, nil
 	}
@@ -898,10 +898,10 @@ func GetFilePath(file string) (string, error) {
 	}
 	err = os.Rename(cfgPath, encPath)
 	if err != nil {
-		log.Fatalf("Unable to rename config file: %s", err)
+		log.Errorf("Unable to rename config file: %s", err)
 		return "", err
 	}
-	log.Printf("Renamed encrypted config file from %s to %s", cfgPath,
+	log.Infof("Renamed encrypted config file from %s to %s", cfgPath,
 		encPath)
 	return encPath, nil
 }
@@ -946,7 +946,7 @@ func (c *Config) ReadConfig(configPath string) error {
 			}
 			key, err := PromptForConfigKey(IsInitialSetup)
 			if err != nil {
-				log.Printf("PromptForConfigKey err: %s", err)
+				log.Infof("PromptForConfigKey err: %s", err)
 				errCounter++
 				continue
 			}
@@ -955,7 +955,7 @@ func (c *Config) ReadConfig(configPath string) error {
 			f = append(f, file...)
 			data, err := DecryptConfigFile(f, key)
 			if err != nil {
-				log.Printf("DecryptConfigFile err: %s", err)
+				log.Infof("DecryptConfigFile err: %s", err)
 				errCounter++
 				continue
 			}
@@ -963,7 +963,7 @@ func (c *Config) ReadConfig(configPath string) error {
 			err = ConfirmConfigJSON(data, &c)
 			if err != nil {
 				if errCounter < configMaxAuthFailres {
-					log.Printf("Invalid password.")
+					log.Infof("Invalid password.")
 				}
 				errCounter++
 				continue
@@ -1018,13 +1018,13 @@ func (c *Config) CheckConfig() error {
 	}
 
 	if err = c.CheckCommunicationsConfig(); err != nil {
-		log.Fatal(err)
+		log.Errorf("%v", err)
 	}
 
 	if c.Webserver.Enabled {
 		err = c.CheckWebserverConfigValues()
 		if err != nil {
-			log.Print(fmt.Errorf(ErrCheckingConfigValues, err))
+			log.Infof("%v", fmt.Errorf(ErrCheckingConfigValues, err))
 			c.Webserver.Enabled = false
 		}
 	}
@@ -1035,7 +1035,7 @@ func (c *Config) CheckConfig() error {
 	}
 
 	if c.GlobalHTTPTimeout <= 0 {
-		log.Printf("Global HTTP Timeout value not set, defaulting to %v.", configDefaultHTTPTimeout)
+		log.Infof("Global HTTP Timeout value not set, defaulting to %v.", configDefaultHTTPTimeout)
 		c.GlobalHTTPTimeout = configDefaultHTTPTimeout
 	}
 

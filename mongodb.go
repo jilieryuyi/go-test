@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 	"time"
 	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
-	log "github.com/sirupsen/logrus"
+	log "github.com/cihub/seelog"
 )
 
 type Mongodb struct {
@@ -21,7 +21,7 @@ type asyncWriteData struct {
 func NewMongoDb(address string) *Mongodb {
 	session, err := mgo.Dial(address)
 	if err != nil {
-		log.Panicf("mgo.Dial fail, error=[%v]", err)
+		log.Errorf("mgo.Dial fail, error=[%v]", err)
 		os.Exit(1)
 	}
 	//session.Login()
