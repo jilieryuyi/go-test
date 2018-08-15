@@ -116,32 +116,33 @@ func (b *Base) GetTicker(exchangeName string) string {
 
 // GetOrderbook returns staged orderbook data
 func (b *Base) GetOrderbook(exchangeName string) string {
-	m.Lock()
-	defer m.Unlock()
+	return ""
+	//m.Lock()
+	//defer m.Unlock()
 
-	orderbook, ok := OrderbookStaged[exchangeName]
-	if !ok {
-		return ""
-	}
+	//orderbook, ok := OrderbookStaged[exchangeName]
+	//if !ok {
+	//	return ""
+	//}
 
-	var orderbooks []Orderbook
-	for _, x := range orderbook {
-		for _, y := range x {
-			orderbooks = append(orderbooks, y)
-		}
-	}
+	//var orderbooks []Orderbook
+	//for _, x := range orderbook {
+	//	for _, y := range x {
+	//		orderbooks = append(orderbooks, y)
+	//	}
+	//}
 
-	var packagedOrderbooks []string
-	for i := range orderbooks {
-		packagedOrderbooks = append(packagedOrderbooks, fmt.Sprintf(
-			"Currency Pair: %s AssetType: %s, LastUpdated: %s TotalAsks: %f TotalBids: %f",
-			orderbooks[i].CurrencyPair,
-			orderbooks[i].AssetType,
-			orderbooks[i].LastUpdated,
-			orderbooks[i].TotalAsks,
-			orderbooks[i].TotalBids))
-	}
-	return common.JoinStrings(packagedOrderbooks, "\n")
+	//var packagedOrderbooks []string
+	//for i := range orderbooks {
+	//	packagedOrderbooks = append(packagedOrderbooks, fmt.Sprintf(
+	//		"Currency Pair: %s AssetType: %s, LastUpdated: %s TotalAsks: %f TotalBids: %f",
+	//		orderbooks[i].CurrencyPair,
+	//		orderbooks[i].AssetType,
+	//		orderbooks[i].LastUpdated,
+	//		orderbooks[i].TotalAsks,
+	//		orderbooks[i].TotalBids))
+	//}
+	//return common.JoinStrings(packagedOrderbooks, "\n")
 }
 
 // GetPortfolio returns staged portfolio info

@@ -167,20 +167,6 @@ func printOrderbookSummary(result orderbook.Base, p pair.CurrencyPair, assetType
 	}
 }
 
-func relayWebsocketEvent(result interface{}, event, assetType, exchangeName string) {
-	evt := WebsocketEvent{
-		Data:      result,
-		Event:     event,
-		AssetType: assetType,
-		Exchange:  exchangeName,
-	}
-	err := BroadcastWebsocketMessage(evt)
-	if err != nil {
-		log.Println(fmt.Errorf("Failed to broadcast websocket event. Error: %s",
-			err))
-	}
-}
-
 // TickerUpdaterRoutine fetches and updates the ticker for all enabled
 // currency pairs and exchanges
 func TickerUpdaterRoutine() {
@@ -215,9 +201,9 @@ func TickerUpdaterRoutine() {
 					printTickerSummary(result, c, assetType, exchangeName, err)
 					if err == nil {
 						bot.comms.StageTickerData(exchangeName, assetType, result)
-						if bot.config.Webserver.Enabled {
-							relayWebsocketEvent(result, "ticker_update", assetType, exchangeName)
-						}
+						//if bot.config.Webserver.Enabled {
+						//	relayWebsocketEvent(result, "ticker_update", assetType, exchangeName)
+						//}
 					}
 				}
 
@@ -269,20 +255,8 @@ func OrderbookUpdaterRoutine(callback OnOrderbook) {
 						seelog.Errorf("UpdateOrderbook fail, result=[%+v], c=[%+v], assetType=[%+v], error=[%v]", result, c, assetType, err)
 						return
 					} else {
+						callback(exchangeName, exchange.FormatCurrency(c).String(), result.LastUpdated, result.Asks, result.Bids)
 						printOrderbookSummary(result, c, assetType, exchangeName, err)
-					}
-					//"ExchangeName": exchangeName,
-					//	"Ticker":	exchange.FormatCurrency(p).String(),
-					//	"Timestamp":	result.LastUpdated,
-					//	"Asks":		result.Asks,
-					//	"Bids":		result.Bids,
-
-					callback(exchangeName, exchange.FormatCurrency(c).String(), result.LastUpdated, result.Asks, result.Bids)
-					if err == nil {
-						bot.comms.StageOrderbookData(exchangeName, assetType, result)
-						if bot.config.Webserver.Enabled {
-							relayWebsocketEvent(result, "orderbook_update", assetType, exchangeName)
-						}
 					}
 				}
 

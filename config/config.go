@@ -7,7 +7,6 @@ import (
 	"fmt"
 	log "github.com/cihub/seelog"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -98,7 +97,6 @@ type Config struct {
 	Currency          CurrencyConfig       `json:"currencyConfig"`
 	Communications    CommunicationsConfig `json:"communications"`
 	Portfolio         portfolio.Base       `json:"portfolioAddresses"`
-	Webserver         WebserverConfig      `json:"webserver"`
 	Exchanges         []ExchangeConfig     `json:"exchanges"`
 	BankAccounts      []BankAccount        `json:"bankAccounts"`
 
@@ -695,31 +693,31 @@ func (c *Config) CheckExchangeConfigValues() error {
 // CheckWebserverConfigValues checks information before webserver starts and
 // returns an error if values are incorrect.
 func (c *Config) CheckWebserverConfigValues() error {
-	if c.Webserver.AdminUsername == "" || c.Webserver.AdminPassword == "" {
-		return errors.New(WarningWebserverCredentialValuesEmpty)
-	}
+	//if c.Webserver.AdminUsername == "" || c.Webserver.AdminPassword == "" {
+	//	return errors.New(WarningWebserverCredentialValuesEmpty)
+	//}
+	//
+	//if !common.StringContains(c.Webserver.ListenAddress, ":") {
+	//	return errors.New(WarningWebserverListenAddressInvalid)
+	//}
 
-	if !common.StringContains(c.Webserver.ListenAddress, ":") {
-		return errors.New(WarningWebserverListenAddressInvalid)
-	}
+	//portStr := common.SplitStrings(c.Webserver.ListenAddress, ":")[1]
+	//port, err := strconv.Atoi(portStr)
+	//if err != nil {
+	//	return errors.New(WarningWebserverListenAddressInvalid)
+	//}
 
-	portStr := common.SplitStrings(c.Webserver.ListenAddress, ":")[1]
-	port, err := strconv.Atoi(portStr)
-	if err != nil {
-		return errors.New(WarningWebserverListenAddressInvalid)
-	}
+	//if port < 1 || port > 65355 {
+	//	return errors.New(WarningWebserverListenAddressInvalid)
+	//}
 
-	if port < 1 || port > 65355 {
-		return errors.New(WarningWebserverListenAddressInvalid)
-	}
-
-	if c.Webserver.WebsocketConnectionLimit <= 0 {
-		c.Webserver.WebsocketConnectionLimit = 1
-	}
-
-	if c.Webserver.WebsocketMaxAuthFailures <= 0 {
-		c.Webserver.WebsocketMaxAuthFailures = 3
-	}
+	//if c.Webserver.WebsocketConnectionLimit <= 0 {
+	//	c.Webserver.WebsocketConnectionLimit = 1
+	//}
+	//
+	//if c.Webserver.WebsocketMaxAuthFailures <= 0 {
+	//	c.Webserver.WebsocketMaxAuthFailures = 3
+	//}
 
 	return nil
 }
@@ -1021,13 +1019,13 @@ func (c *Config) CheckConfig() error {
 		log.Errorf("%v", err)
 	}
 
-	if c.Webserver.Enabled {
-		err = c.CheckWebserverConfigValues()
-		if err != nil {
-			log.Infof("%v", fmt.Errorf(ErrCheckingConfigValues, err))
-			c.Webserver.Enabled = false
-		}
-	}
+	//if c.Webserver.Enabled {
+	//	err = c.CheckWebserverConfigValues()
+	//	if err != nil {
+	//		log.Infof("%v", fmt.Errorf(ErrCheckingConfigValues, err))
+	//		c.Webserver.Enabled = false
+	//	}
+	//}
 
 	err = c.CheckCurrencyConfigValues()
 	if err != nil {
@@ -1070,7 +1068,7 @@ func (c *Config) UpdateConfig(configPath string, newCfg Config) error {
 	c.GlobalHTTPTimeout = newCfg.GlobalHTTPTimeout
 	c.Portfolio = newCfg.Portfolio
 	c.Communications = newCfg.Communications
-	c.Webserver = newCfg.Webserver
+	//c.Webserver = newCfg.Webserver
 	c.Exchanges = newCfg.Exchanges
 
 	err = c.SaveConfig(configPath)

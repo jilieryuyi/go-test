@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	log "github.com/cihub/seelog"
-	"net/http"
 	"os"
 	"os/signal"
 	"runtime"
@@ -141,29 +140,6 @@ func main() {
 		// 异步写入
 		mongo.AsyncInsert(col, exchangeName, ticker, lastUpdated, asks, bids)
 	})
-
-	if bot.config.Webserver.Enabled {
-		listenAddr := bot.config.Webserver.ListenAddress
-		log.Infof(
-			"HTTP Webserver support enabled. Listen URL: http://%s:%d/",
-			common.ExtractHost(listenAddr), common.ExtractPort(listenAddr),
-		)
-
-		router := NewRouter(bot.exchanges)
-		go func() {
-			err = http.ListenAndServe(listenAddr, router)
-			if err != nil {
-				log.Errorf("%v", err)
-				return
-			}
-		}()
-
-		log.Infof("HTTP Webserver started successfully.")
-		log.Infof("Starting websocket handler.")
-		StartWebsocketHandler()
-	} else {
-		log.Infof("HTTP RESTful Webserver support disabled.")
-	}
 
 	<-bot.shutdown
 	Shutdown()

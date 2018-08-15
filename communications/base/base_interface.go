@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/thrasher-/gocryptotrader/config"
-	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
 )
 
@@ -26,7 +25,7 @@ type ICommunicate interface {
 // communication mediums
 func (c IComm) Setup() {
 	TickerStaged = make(map[string]map[string]map[string]ticker.Price)
-	OrderbookStaged = make(map[string]map[string]map[string]Orderbook)
+	//OrderbookStaged = make(map[string]map[string]map[string]Orderbook)
 	ServiceStarted = time.Now()
 
 	for i := range c {
@@ -85,24 +84,24 @@ func (c IComm) StageTickerData(exchangeName, assetType string, tickerPrice ticke
 
 // StageOrderbookData stages updated orderbook data for the communications
 // package
-func (c IComm) StageOrderbookData(exchangeName, assetType string, orderbook orderbook.Base) {
-	m.Lock()
-	defer m.Unlock()
-
-	if _, ok := OrderbookStaged[exchangeName]; !ok {
-		OrderbookStaged[exchangeName] = make(map[string]map[string]Orderbook)
-	}
-
-	if _, ok := OrderbookStaged[exchangeName][assetType]; !ok {
-		OrderbookStaged[exchangeName][assetType] = make(map[string]Orderbook)
-	}
-
-	_, totalAsks := orderbook.CalculateTotalAsks()
-	_, totalBids := orderbook.CalculateTotalBids()
-
-	OrderbookStaged[exchangeName][assetType][orderbook.CurrencyPair] = Orderbook{
-		CurrencyPair: orderbook.CurrencyPair,
-		TotalAsks:    totalAsks,
-		TotalBids:    totalBids,
-		LastUpdated:  orderbook.LastUpdated.String()}
-}
+//func (c IComm) StageOrderbookData(exchangeName, assetType string, orderbook orderbook.Base) {
+//	m.Lock()
+//	defer m.Unlock()
+//
+//	if _, ok := OrderbookStaged[exchangeName]; !ok {
+//		OrderbookStaged[exchangeName] = make(map[string]map[string]Orderbook)
+//	}
+//
+//	if _, ok := OrderbookStaged[exchangeName][assetType]; !ok {
+//		OrderbookStaged[exchangeName][assetType] = make(map[string]Orderbook)
+//	}
+//
+//	_, totalAsks := orderbook.CalculateTotalAsks()
+//	_, totalBids := orderbook.CalculateTotalBids()
+//
+//	OrderbookStaged[exchangeName][assetType][orderbook.CurrencyPair] = Orderbook{
+//		CurrencyPair: orderbook.CurrencyPair,
+//		TotalAsks:    totalAsks,
+//		TotalBids:    totalBids,
+//		LastUpdated:  orderbook.LastUpdated.String()}
+//}
