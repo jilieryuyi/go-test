@@ -81,6 +81,7 @@ func (o *Base) Update(Bids, Asks []Item) {
 func GetOrderbook(exchange string, p pair.CurrencyPair, orderbookType string) (Base, error) {
 	orderbook, err := GetOrderbookByExchange(exchange)
 	if err != nil {
+		logrus.Errorf("GetOrderbook GetOrderbookByExchange fail, err=[%v]", err)
 		return Base{}, err
 	}
 
