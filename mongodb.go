@@ -30,6 +30,7 @@ func NewMongoDb(address string) *Mongodb {
 		session: session,
 		writeChan: make(chan *asyncWriteData, 1024),
 	}
+	go m.process()
 	return m
 }
 
