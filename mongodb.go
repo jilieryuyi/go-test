@@ -1,16 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"gopkg.in/mgo.v2"
 	"time"
 	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
+	log "github.com/sirupsen/logrus"
 )
 
 type Mongodb struct {
 	session *mgo.Session
-	writeChan chan *asyncWriteData//map[string]interface{}
+	writeChan chan *asyncWriteData
 }
 
 type asyncWriteData struct {
@@ -19,25 +19,13 @@ type asyncWriteData struct {
 }
 
 func NewMongoDb(address string) *Mongodb {
-	session, err := mgo.Dial(address)//"127.0.0.1:27017")
-
+	session, err := mgo.Dial(address)
 	if err != nil {
-		fmt.Printf("Can't connect to mongo, go error %v\n", err)
+		log.Panicf("mgo.Dial fail, error=[%v]", err)
 		os.Exit(1)
 	}
-
 	//session.Login()
-
-	//defer session.Close()
-
-	// SetSafe changes the session safety mode.
-	// If the safe parameter is nil, the session is put in unsafe mode, and writes become fire-and-forget,
-	// without error checking. The unsafe mode is faster since operations won't hold on waiting for a confirmation.
-	// http://godoc.org/labix.org/v2/mgo#Session.SetMode.
 	session.SetSafe(&mgo.Safe{})
-
-	// get collection
-	//collection := session.DB("OrderBooks").C("orderbooks")
 	m := &Mongodb{
 		session: session,
 		writeChan: make(chan *asyncWriteData, 1024),
@@ -55,7 +43,6 @@ func (m *Mongodb) NewCollection(dbName, colName string) *mgo.Collection {
 }
 
 func (m *Mongodb) process() {
-	//col := m.NewCollection("OrderBooks", "orderbooks")
 	for {
 		select {
 		case col, ok := <- m.writeChan:
@@ -82,21 +69,14 @@ func (m *Mongodb) AsyncInsert(
 	ticker string, lastUpdated time.Time,
 	asks, bids []orderbook.Item,
 ) {
-	//col.Insert(map[string]interface{}{
-	//	"ExchangeName": exchangeName,
-	//	"Ticker":	    ticker,//exchange.FormatCurrency(p).String(),
-	//	"Timestamp":	lastUpdated,//result.LastUpdated,
-	//	"Asks":		asks,//result.Asks,
-	//	"Bids":		bids,//result.Bids,
-	//})
 	m.writeChan <- &asyncWriteData{
 		col: col,
 		data: map[string]interface{}{
 			"ExchangeName": exchangeName,
-			"Ticker":	    ticker,//exchange.FormatCurrency(p).String(),
-			"Timestamp":	lastUpdated,//result.LastUpdated,
-			"Asks":		asks,//result.Asks,
-			"Bids":		bids,//result.Bids,
+			"Ticker":	    ticker,
+			"Timestamp":	lastUpdated,
+			"Asks":		    asks,
+			"Bids":		    bids,
 		},
 	}
 }

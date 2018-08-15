@@ -31,7 +31,7 @@ type Bot struct {
 	exchanges  []exchange.IBotExchange
 	comms      *communications.Communications
 	shutdown   chan bool
-	dryRun     bool
+	//dryRun     bool
 	configFile string
 }
 
@@ -67,17 +67,12 @@ func main() {
 
 	//Handle flags
 	flag.StringVar(&bot.configFile, "config", defaultPath, "config file to load")
-	dryrun := flag.Bool("dryrun", false, "dry runs bot, doesn't save config file")
 	version := flag.Bool("version", false, "retrieves current GoCryptoTrader version")
 	flag.Parse()
 
 	if *version {
 		fmt.Printf(BuildVersion(true))
 		os.Exit(0)
-	}
-
-	if *dryrun {
-		bot.dryRun = true
 	}
 
 	bot.config = &config.Cfg
@@ -92,7 +87,7 @@ func main() {
 
 	AdjustGoMaxProcs()
 	log.Printf("Bot '%s' started", bot.config.Name)
-	log.Printf("Bot dry run mode: %v", common.IsEnabled(bot.dryRun))
+	//log.Printf("Bot dry run mode: %v", common.IsEnabled(bot.dryRun))
 
 	log.Printf("Available Exchanges: %d. Enabled Exchanges: %d.",
 		len(bot.config.Exchanges),
@@ -132,30 +127,8 @@ func main() {
 	//go portfolio.StartPortfolioWatcher()
 	//go TickerUpdaterRoutine()
 	
-	// Create a session which maintains a pool of socket connections
-	// to our MongoDB.
-	//session, err := mgo.Dial("127.0.0.1:27017")
-
 	mongo := NewMongoDb("127.0.0.1:27017")
 	defer mongo.Close()
-
-	//if err != nil {
-	//	fmt.Printf("Can't connect to mongo, go error %v", err)
-	//	os.Exit(1)
-	//}
-
-	//defer session.Close()
-
-	// SetSafe changes the session safety mode.
-	// If the safe parameter is nil, the session is put in unsafe mode, and writes become fire-and-forget,
-	// without error checking. The unsafe mode is faster since operations won't hold on waiting for a confirmation.
-	// http://godoc.org/labix.org/v2/mgo#Session.SetMode.
-	//session.SetSafe(&mgo.Safe{})
-
-	// get collection
-	//collection := session.DB("OrderBooks").C("orderbooks")
-	//log.Printf("%+v", collection)
-
 	// 创建一个集合
 	col := mongo.NewCollection("OrderBooks", "orderbooks")
 
@@ -233,15 +206,15 @@ func Shutdown() {
 		bot.config.Portfolio = portfolio.Portfolio
 	}
 
-	if !bot.dryRun {
-		err := bot.config.SaveConfig(bot.configFile)
-
-		if err != nil {
-			log.Println("Unable to save config.")
-		} else {
-			log.Println("Config file saved successfully.")
-		}
-	}
+	//if !bot.dryRun {
+	//	err := bot.config.SaveConfig(bot.configFile)
+	//
+	//	if err != nil {
+	//		log.Println("Unable to save config.")
+	//	} else {
+	//		log.Println("Config file saved successfully.")
+	//	}
+	//}
 
 	log.Println("Exiting.")
 	os.Exit(0)
