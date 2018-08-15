@@ -1,0 +1,178 @@
+{
+ "name": "Skynet",
+ "encryptConfig": -1,
+ "globalHTTPTimeout": 15000000000,
+ "currencyConfig": {
+  "forexProviders": [
+   {
+    "name": "CurrencyConverter",
+    "enabled": true,
+    "verbose": false,
+    "restPollingDelay": 600,
+    "apiKey": "",
+    "apiKeyLvl": -1,
+    "primaryProvider": true
+   },
+   {
+    "name": "CurrencyLayer",
+    "enabled": false,
+    "verbose": false,
+    "restPollingDelay": 600,
+    "apiKey": "Key",
+    "apiKeyLvl": -1,
+    "primaryProvider": false
+   },
+   {
+    "name": "Fixer",
+    "enabled": false,
+    "verbose": false,
+    "restPollingDelay": 600,
+    "apiKey": "Key",
+    "apiKeyLvl": -1,
+    "primaryProvider": false
+   },
+   {
+    "name": "OpenExchangeRates",
+    "enabled": false,
+    "verbose": false,
+    "restPollingDelay": 600,
+    "apiKey": "Key",
+    "apiKeyLvl": -1,
+    "primaryProvider": false
+   }
+  ],
+  "cryptocurrencies": "BTC,LTC,ETH,XRP,NMC,NVC,PPC,XBT,DOGE,DASH",
+  "currencyPairFormat": {
+   "uppercase": true,
+   "delimiter": "-"
+  },
+  "fiatDisplayCurrency": "USD"
+ },
+ "communications": {
+  "slack": {
+   "name": "Slack",
+   "enabled": false,
+   "verbose": false,
+   "targetChannel": "general",
+   "verificationToken": "testtest"
+  },
+  "smsGlobal": {
+   "name": "SMSGlobal",
+   "enabled": false,
+   "verbose": false,
+   "username": "Username",
+   "password": "Password",
+   "contacts": [
+    {
+     "name": "Bob",
+     "number": "12345",
+     "enabled": false
+    }
+   ]
+  },
+  "smtp": {
+   "name": "SMTP",
+   "enabled": false,
+   "verbose": false,
+   "host": "smtp.google.com",
+   "port": "537",
+   "accountName": "some",
+   "accountPassword": "password",
+   "recipientList": "lol123@gmail.com"
+  },
+  "telegram": {
+   "name": "Telegram",
+   "enabled": false,
+   "verbose": false,
+   "verificationToken": "testest"
+  }
+ },
+ "portfolioAddresses": {
+  "Addresses": [
+   {
+    "Address": "1JCe8z4jJVNXSjohjM4i9Hh813dLCNx2Sy",
+    "CoinType": "BTC",
+    "Balance": 53000.01324467,
+    "Description": ""
+   },
+   {
+    "Address": "3Nxwenay9Z8Lc9JBiywExpnEFiLp6Afp8v",
+    "CoinType": "BTC",
+    "Balance": 103848.28433373,
+    "Description": ""
+   },
+   {
+    "Address": "LgY8ahfHRhvjVQC1zJnBhFMG5pCTMuKRqh",
+    "CoinType": "LTC",
+    "Balance": 0.03665026,
+    "Description": ""
+   },
+   {
+    "Address": "0xb794f5ea0ba39494ce839613fffba74279579268",
+    "CoinType": "ETH",
+    "Balance": 0.25927504051326,
+    "Description": ""
+   }
+  ]
+ },
+ "webserver": {
+  "enabled": true,
+  "adminUsername": "admin",
+  "adminPassword": "Password",
+  "listenAddress": ":9050",
+  "websocketConnectionLimit": 1,
+  "websocketMaxAuthFailures": 3,
+  "websocketAllowInsecureOrigin": true
+ },
+ "exchanges": [
+  {
+   "name": "Huobi",
+   "enabled": true,
+   "verbose": false,
+   "websocket": false,
+   "useSandbox": false,
+   "restPollingDelay": 10,
+   "httpTimeout": 15000000000,
+   "httpUserAgent": "",
+   "authenticatedApiSupport": false,
+   "apiKey": "Key",
+   "apiSecret": "Secret",
+   "apiAuthPemKey": "-----BEGIN EC PRIVATE KEY-----\nJUSTADUMMY\n-----END EC PRIVATE KEY-----\n",
+   "availablePairs": "BTC-USDT,BCH-USDT,ETH-USDT,ETC-USDT,LTC-USDT,EOS-USDT,XRP-USDT,OMG-USDT,DASH-USDT,ZEC-USDT,ADA-USDT,STEEM-USDT,IOTA-USDT,OCN-USDT,SOC-USDT,CTXC-USDT,ACT-USDT,BTM-USDT,BTS-USDT,ONT-USDT,IOST-USDT,HT-USDT,TRX-USDT,DTA-USDT,NEO-USDT,QTUM-USDT,SMT-USDT,ELA-USDT,VEN-USDT,THETA-USDT,SNT-USDT,ZIL-USDT,XEM-USDT,NAS-USDT,RUFF-USDT,HSR-USDT,LET-USDT,MDS-USDT,STORJ-USDT,ELF-USDT,ITC-USDT,CVC-USDT,GNT-USDT,XMR-BTC,BCH-BTC,ETH-BTC,LTC-BTC,ETC-BTC,EOS-BTC,OMG-BTC,XRP-BTC,DASH-BTC,ZEC-BTC,ADA-BTC,STEEM-BTC,IOTA-BTC,POLY-BTC,KAN-BTC,LBA-BTC,WAN-BTC,BFT-BTC,BTM-BTC,ONT-BTC,IOST-BTC,HT-BTC,TRX-BTC,SMT-BTC,ELA-BTC,WICC-BTC,OCN-BTC,ZLA-BTC,ABT-BTC,MTX-BTC,NAS-BTC,VEN-BTC,DTA-BTC,NEO-BTC,WAX-BTC,BTS-BTC,ZIL-BTC,THETA-BTC,CTXC-BTC,SRN-BTC,XEM-BTC,ICX-BTC,DGD-BTC,CHAT-BTC,WPR-BTC,LUN-BTC,SWFTC-BTC,SNT-BTC,MEET-BTC,YEE-BTC,ELF-BTC,LET-BTC,QTUM-BTC,LSK-BTC,ITC-BTC,SOC-BTC,QASH-BTC,MDS-BTC,EKO-BTC,TOPC-BTC,MTN-BTC,ACT-BTC,HSR-BTC,STK-BTC,STORJ-BTC,GNX-BTC,DBC-BTC,SNC-BTC,CMT-BTC,TNB-BTC,RUFF-BTC,QUN-BTC,ZRX-BTC,KNC-BTC,BLZ-BTC,PROPY-BTC,RPX-BTC,APPC-BTC,AIDOC-BTC,POWR-BTC,CVC-BTC,PAY-BTC,QSP-BTC,DAT-BTC,RDN-BTC,MCO-BTC,RCN-BTC,MANA-BTC,UTK-BTC,TNT-BTC,GAS-BTC,BAT-BTC,OST-BTC,LINK-BTC,GNT-BTC,MTL-BTC,EVX-BTC,REQ-BTC,ADX-BTC,AST-BTC,ENG-BTC,SALT-BTC,EDU-BTC,XVG-BTC,WTC-BTC,BIFI-BTC,BCX-BTC,BCD-BTC,SBTC-BTC,BTG-BTC,XMR-ETH,EOS-ETH,OMG-ETH,IOTA-ETH,ADA-ETH,STEEM-ETH,POLY-ETH,KAN-ETH,LBA-ETH,WAN-ETH,BFT-ETH,ZRX-ETH,AST-ETH,KNC-ETH,ONT-ETH,HT-ETH,BTM-ETH,IOST-ETH,SMT-ETH,ELA-ETH,TRX-ETH,ABT-ETH,NAS-ETH,OCN-ETH,WICC-ETH,ZIL-ETH,CTXC-ETH,ZLA-ETH,WPR-ETH,DTA-ETH,MTX-ETH,THETA-ETH,SRN-ETH,VEN-ETH,BTS-ETH,WAX-ETH,HSR-ETH,ICX-ETH,MTN-ETH,ACT-ETH,BLZ-ETH,QASH-ETH,RUFF-ETH,CMT-ETH,ELF-ETH,MEET-ETH,SOC-ETH,QTUM-ETH,ITC-ETH,SWFTC-ETH,YEE-ETH,LSK-ETH,LUN-ETH,LET-ETH,GNX-ETH,CHAT-ETH,EKO-ETH,TOPC-ETH,DGD-ETH,STK-ETH,MDS-ETH,DBC-ETH,SNC-ETH,PAY-ETH,QUN-ETH,AIDOC-ETH,TNB-ETH,APPC-ETH,RDN-ETH,UTK-ETH,POWR-ETH,BAT-ETH,PROPY-ETH,MANA-ETH,REQ-ETH,CVC-ETH,QSP-ETH,EVX-ETH,DAT-ETH,MCO-ETH,GNT-ETH,GAS-ETH,OST-ETH,LINK-ETH,RCN-ETH,TNT-ETH,ENG-ETH,SALT-ETH,ADX-ETH,EDU-ETH,XVG-ETH,WTC-ETH,XRP-HT,IOST-HT,DASH-HT,WICC-USDT,EOS-HT,BCH-HT,LTC-HT,ETC-HT,WAVES-BTC,WAVES-ETH,HB10-USDT,CMT-USDT,DCR-BTC,DCR-ETH,PAI-BTC,PAI-ETH,BOX-BTC,BOX-ETH,DGB-BTC,DGB-ETH,GXS-BTC,GXS-ETH,XLM-BTC,XLM-ETH,BIX-BTC,BIX-ETH,BIX-USDT,HIT-BTC,HIT-ETH,PAI-USDT,BT1-BTC,BT2-BTC",
+   "enabledPairs": "BTC-USDT",
+   "baseCurrencies": "USD",
+   "assetTypes": "SPOT",
+   "supportsAutoPairUpdates": true,
+   "configCurrencyPairFormat": {
+    "uppercase": true,
+    "delimiter": "-"
+   },
+   "requestCurrencyPairFormat": {
+    "uppercase": false
+   },
+   "bankAccounts": [
+    {
+     "bankName": "",
+     "bankAddress": "",
+     "accountName": "",
+     "accountNumber": "",
+     "swiftCode": "",
+     "iban": "",
+     "supportedCurrencies": ""
+    }
+   ]
+  }
+ ],
+ "bankAccounts": [
+  {
+   "bankName": "test",
+   "bankAddress": "test",
+   "accountName": "TestAccount",
+   "accountNumber": "0234",
+   "swiftCode": "91272837",
+   "iban": "98218738671897",
+   "supportedCurrencies": "USD",
+   "supportedExchanges": "ANX,Kraken"
+  }
+ ]
+}
