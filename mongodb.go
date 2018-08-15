@@ -53,14 +53,14 @@ func (m *Mongodb) process() {
 			err := col.col.Insert(col.data)
 			// 如果失败，等待1秒后重试，最多重试3次
 			if err != nil {
-				log.Errorf("process col.Insert fail, error=[%v]", err)
+				log.Errorf("process col.Insert fail, data=[%+v], error=[%v]", col.data, err)
 				for i := 0; i < 3; i++ {
 					time.Sleep(time.Second)
 					err = col.col.Insert(col.data)
 					if err == nil {
 						break
 					} else {
-						log.Errorf("process col.Insert fail, error=[%v]", err)
+						log.Errorf("process col.Insert fail, data=[%+v], error=[%v]", col.data, err)
 					}
 				}
 			}
