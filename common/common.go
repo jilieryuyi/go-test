@@ -57,7 +57,16 @@ func initialiseHTTPClient() {
 // NewHTTPClientWithTimeout initialises a new HTTP client with the specified
 // timeout duration
 func NewHTTPClientWithTimeout(t time.Duration) *http.Client {
-	h := &http.Client{Timeout: t}
+	//url, _ := url.Parse("127.0.0.1:1080")
+
+	h := &http.Client{
+		Timeout: t,
+
+		// 使用代理服务器
+		//Transport: &http.Transport{
+		//	Proxy: http.ProxyURL(url),
+		//},
+	}
 	return h
 }
 
