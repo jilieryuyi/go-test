@@ -11,6 +11,7 @@ import (
 	"github.com/thrasher-/gocryptotrader/exchanges"
 	"github.com/thrasher-/gocryptotrader/exchanges/orderbook"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
+	"github.com/sirupsen/logrus"
 )
 
 // Start starts the HUOBI go routine
@@ -127,6 +128,7 @@ func (h *HUOBI) UpdateOrderbook(p pair.CurrencyPair, assetType string) (orderboo
 		Type:   OrderBookDataRequestParamsTypeStep1,
 	})
 	if err != nil {
+		logrus.Errorf("UpdateOrderbook h.GetDepth fail, err=[%v]", err)
 		return orderBook, err
 	}
 

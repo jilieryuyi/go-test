@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/thrasher-/gocryptotrader/currency/pair"
+	"github.com/sirupsen/logrus"
 )
 
 // Const values for orderbook package
@@ -84,10 +85,12 @@ func GetOrderbook(exchange string, p pair.CurrencyPair, orderbookType string) (B
 	}
 
 	if !FirstCurrencyExists(exchange, p.GetFirstCurrency()) {
+		logrus.Errorf("GetOrderbook FirstCurrencyExists fail, err=[%v]", ErrPrimaryCurrencyNotFound)
 		return Base{}, errors.New(ErrPrimaryCurrencyNotFound)
 	}
 
 	if !SecondCurrencyExists(exchange, p) {
+		logrus.Errorf("GetOrderbook SecondCurrencyExists fail, err=[%v]", ErrSecondaryCurrencyNotFound)
 		return Base{}, errors.New(ErrSecondaryCurrencyNotFound)
 	}
 
