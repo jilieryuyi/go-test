@@ -20,6 +20,7 @@ import (
 	exchange "github.com/thrasher-/gocryptotrader/exchanges"
 	"github.com/thrasher-/gocryptotrader/exchanges/request"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -181,6 +182,9 @@ func (h *HUOBI) GetDepth(obd OrderBookDataRequestParams) (Orderbook, error) {
 	url := fmt.Sprintf("%s/%s", huobiAPIURL, huobiMarketDepth)
 
 	err := h.SendHTTPRequest(common.EncodeURLValues(url, vals), &result)
+
+	logrus.Errorf("SendHTTPRequest %+v, %+v", result, err)
+
 	if result.ErrorMessage != "" {
 		return result.Depth, errors.New(result.ErrorMessage)
 	}
