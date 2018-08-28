@@ -14,6 +14,7 @@ import (
 	"github.com/thrasher-/gocryptotrader/exchanges/stats"
 	"github.com/thrasher-/gocryptotrader/exchanges/ticker"
 	"github.com/cihub/seelog"
+	"os"
 )
 
 func printCurrencyFormat(price float64) string {
@@ -111,6 +112,9 @@ func printOrderbookSummary(result orderbook.Base, p pair.CurrencyPair, assetType
 	}
 	bidsAmount, bidsValue := result.CalculateTotalBids()
 	asksAmount, asksValue := result.CalculateTotalAsks()
+
+	fmt.Fprintf(os.Stderr, "买入最新成交价%v, %v\r\n", result.Bids[0].Price, result.Bids[len(result.Bids)-1].Price)
+	fmt.Fprintf(os.Stderr, "卖出最新成交价%v, %v\r\n", result.Asks[0].Price, result.Asks[len(result.Asks)-1].Price)
 
 	if currency.IsFiatCurrency(p.SecondCurrency.String()) && p.SecondCurrency.String() != bot.config.Currency.FiatDisplayCurrency {
 		origCurrency := p.SecondCurrency.Upper().String()
@@ -219,7 +223,7 @@ func TickerUpdaterRoutine() {
 			}(x, &wg)
 		}
 		wg.Wait()
-		log.Println("All enabled currency tickers fetched.")
+		//log.Println("All enabled currency tickers fetched.")
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -268,7 +272,7 @@ func OrderbookUpdaterRoutine(callback OnOrderbook) {
 			}(x, &wg)
 		}
 		wg.Wait()
-		log.Println("All enabled currency orderbooks fetched.")
+		//log.Println("All enabled currency orderbooks fetched.")
 		time.Sleep(time.Second * 1)
 	}
 }
